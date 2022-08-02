@@ -17,6 +17,14 @@ public class SshTerminal extends UnixTerminal {
     super();
   }
 
+  private static boolean isNullOrEmpty(String value) {
+    return value == null || value.isEmpty();
+  }
+
+  static void registerEnvironment(Environment environment) {
+    env.set(environment);
+  }
+
   @Override
   public int getWidth() {
     String columnsAsString = retrieveEnvironment().getEnv().get("COLUMNS");
@@ -53,13 +61,5 @@ public class SshTerminal extends UnixTerminal {
 
   private Environment retrieveEnvironment() {
     return requireNonNull(env.get(), "Environment is not registered");
-  }
-
-  private static boolean isNullOrEmpty(String value) {
-    return value == null || value.isEmpty();
-  }
-
-  static void registerEnvironment(Environment environment) {
-    env.set(environment);
   }
 }

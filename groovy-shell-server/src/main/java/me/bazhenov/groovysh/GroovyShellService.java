@@ -52,173 +52,159 @@ import static org.apache.sshd.server.SshServer.setUpDefaultServer;
 @SuppressWarnings("UnusedDeclaration")
 public class GroovyShellService {
 
-  private int port;
-  private String host;
-  private Map<String, Object> bindings;
-  private PasswordAuthenticator passwordAuthenticator;
-  private long idleTimeOut = HOURS.toMillis(1);
+    private int port;
+    private String host;
+    private Map<String, Object> bindings;
+    private PasswordAuthenticator passwordAuthenticator;
+    private long idleTimeOut = HOURS.toMillis(1);
 
-  static final Session.AttributeKey<Groovysh> SHELL_KEY = new Session.AttributeKey<>();
-  private List<String> defaultScripts = new ArrayList<>();
-  private SshServer sshd;
-  private boolean disableImportCompletions = false;
-  private final AtomicBoolean isServiceAlive = new AtomicBoolean(true);
+    static final Session.AttributeKey<Groovysh> SHELL_KEY = new Session.AttributeKey<>();
+    private List<String> defaultScripts = new ArrayList<>();
+    private SshServer sshd;
+    private boolean disableImportCompletions = false;
+    private final AtomicBoolean isServiceAlive = new AtomicBoolean(false);
 
-  /**
-   * Uses a default port of 6789
-   */
-  public GroovyShellService() {
-    this(6789);
-  }
-
-  @SuppressWarnings("WeakerAccess")
-  public GroovyShellService(int port) {
-    if (port <= 0 || port > 65535) {
-      throw new IllegalArgumentException("Wrong port number");
-    }
-    this.port = port;
-    registerFlavor(UNIX, SshTerminal.class);
-  }
-
-  public Map<String, Object> getBindings() {
-    return bindings;
-  }
-
-  public void setBindings(Map<String, Object> bindings) {
-    this.bindings = bindings;
-  }
-
-  public int getPort() {
-    return port;
-  }
-
-  /**
-   * Adds a groovy script to be executed for each new client session.
-   *
-   * @param script script
-   */
-  public void addDefaultScript(String script) {
-    defaultScripts.add(script);
-  }
-
-  /**
-   * @return complete List of scripts to be executed for each new client session
-   */
-  public List<String> getDefaultScripts() {
-    return defaultScripts;
-  }
-
-  public void setPort(final int port) {
-    this.port = port;
-  }
-
-  public void setHost(final String host) {
-    this.host = host;
-  }
-
-  public void setIdleTimeOut(long timeOut) {
-    if (timeOut < 0) {
-      throw new IllegalArgumentException("Wrong timeout");
-    }
-    this.idleTimeOut = timeOut;
-  }
-
-  /**
-   * Disable import completion autoscan.
-   * <p>
-   * Import completion autoscan known to cause problems on a Spring Boot applications packaged in
-   * uber-jar. Please, keep in mind that value is written (and persisted) using Java Preferences
-   * API. So once written it should be removed by hand (you can use groovysh <code>:set</code>
-   * command).
-   *
-   * @see <a href="https://github.com/bazhenov/groovy-shell-server/issues/26">groovy-shell-server
-   * does not work with jdk11</a>
-   */
-  public void setDisableImportCompletions(boolean disableImportCompletions) {
-    this.disableImportCompletions = disableImportCompletions;
-  }
-
-  public void setPasswordAuthenticator(PasswordAuthenticator passwordAuthenticator) {
-    this.passwordAuthenticator = passwordAuthenticator;
-  }
-
-  public void setDefaultScripts(List<String> defaultScriptNames) {
-    this.defaultScripts = defaultScriptNames;
-  }
-
-  /**
-   * Starts Groovysh
-   *
-   * @throws IOException thrown if socket cannot be opened
-   */
-  public synchronized void start() throws IOException {
-    sshd = buildSshServer();
-    sshd.start();
-    if (disableImportCompletions) {
-      Preferences.put(IMPORT_COMPLETION_PREFERENCE_KEY, "true");
-    }
-  }
-
-  private SshServer buildSshServer() {
-    SshServer sshd = setUpDefaultServer();
-    sshd.setPort(port);
-    if (host != null) {
-      sshd.setHost(host);
+    /**
+     * Uses a default port of 6789
+     */
+    public GroovyShellService() {
+        this(6789);
     }
 
-    long idleTimeOut = this.idleTimeOut;
-    updateProperty(sshd, IDLE_TIMEOUT.getName(), idleTimeOut);
-    updateProperty(sshd, NIO2_READ_TIMEOUT.getName(), idleTimeOut + SECONDS.toMillis(15L));
-
-    sshd.addSessionListener(new SessionListener() {
-      @Override
-      public void sessionCreated(Session session) {
-      }
-
-      @Override
-      public void sessionEvent(Session sesssion, Event event) {
-      }
-
-      @Override
-      public void sessionException(Session session, Throwable t) {
-      }
-
-      @Override
-      public void sessionClosed(Session session) {
-        Groovysh shell = session.getAttribute(SHELL_KEY);
-        if (shell != null) {
-          shell.getRunner().setRunning(false);
+    @SuppressWarnings("WeakerAccess")
+    public GroovyShellService(int port) {
+        if (port <= 0 || port > 65535) {
+            throw new IllegalArgumentException("Wrong port number");
         }
-      }
-    });
-
-    sshd.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("host.key").toPath()));
-    configureAuthentication(sshd);
-    sshd.setShellFactory(new GroovyShellFactory());
-    return sshd;
-  }
-
-  private void configureAuthentication(SshServer sshd) {
-    UserAuthFactory auth;
-    if (this.passwordAuthenticator != null) {
-      sshd.setPasswordAuthenticator(this.passwordAuthenticator);
-      auth = new UserAuthPasswordFactory();
-    } else {
-      auth = new UserAuthNoneFactory();
+        this.port = port;
+        registerFlavor(UNIX, SshTerminal.class);
     }
-    sshd.setUserAuthFactories(singletonList(auth));
-  }
 
-  public synchronized void destroy() throws IOException {
-    isServiceAlive.set(false);
-    sshd.stop(true);
-  }
-
-  class GroovyShellFactory implements ShellFactory {
-
-    @Override
-    public Command createShell(ChannelSession channel) {
-      return new GroovyShellCommand(sshd, bindings, defaultScripts, isServiceAlive);
+    public Map<String, Object> getBindings() {
+        return bindings;
     }
-  }
+
+    public void setBindings(Map<String, Object> bindings) {
+        this.bindings = bindings;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public AtomicBoolean getIsServiceAlive() {
+        return isServiceAlive;
+    }
+
+    /**
+     * Adds a groovy script to be executed for each new client session.
+     *
+     * @param script script
+     */
+    public void addDefaultScript(String script) {
+        defaultScripts.add(script);
+    }
+
+    /**
+     * @return complete List of scripts to be executed for each new client session
+     */
+    public List<String> getDefaultScripts() {
+        return defaultScripts;
+    }
+
+    public void setPort(final int port) {
+        this.port = port;
+    }
+
+    public void setHost(final String host) {
+        this.host = host;
+    }
+
+    public void setIdleTimeOut(long timeOut) {
+        if (timeOut < 0) {
+            throw new IllegalArgumentException("Wrong timeout");
+        }
+        this.idleTimeOut = timeOut;
+    }
+
+    /**
+     * Disable import completion autoscan.
+     * <p>
+     * Import completion autoscan known to cause problems on a Spring Boot applications packaged in
+     * uber-jar. Please, keep in mind that value is written (and persisted) using Java Preferences
+     * API. So once written it should be removed by hand (you can use groovysh <code>:set</code>
+     * command).
+     *
+     * @see <a href="https://github.com/bazhenov/groovy-shell-server/issues/26">groovy-shell-server
+     * does not work with jdk11</a>
+     */
+    public void setDisableImportCompletions(boolean disableImportCompletions) {
+        this.disableImportCompletions = disableImportCompletions;
+    }
+
+    public void setPasswordAuthenticator(PasswordAuthenticator passwordAuthenticator) {
+        this.passwordAuthenticator = passwordAuthenticator;
+    }
+
+    public void setDefaultScripts(List<String> defaultScriptNames) {
+        this.defaultScripts = defaultScriptNames;
+    }
+
+    /**
+     * Starts Groovysh
+     *
+     * @throws IOException thrown if socket cannot be opened
+     */
+    public synchronized void start() throws IOException {
+        sshd = buildSshServer();
+        sshd.start();
+        if (disableImportCompletions) {
+            Preferences.put(IMPORT_COMPLETION_PREFERENCE_KEY, "true");
+        }
+        isServiceAlive.compareAndSet(false, true);
+    }
+
+    private SshServer buildSshServer() {
+        SshServer sshd = setUpDefaultServer();
+        sshd.setPort(port);
+        if (host != null) {
+            sshd.setHost(host);
+        }
+
+        long idleTimeOut = this.idleTimeOut;
+        updateProperty(sshd, IDLE_TIMEOUT.getName(), idleTimeOut);
+        updateProperty(sshd, NIO2_READ_TIMEOUT.getName(), idleTimeOut + SECONDS.toMillis(15L));
+
+        sshd.addSessionListener(new SessionListener() {
+            @Override
+            public void sessionClosed(Session session) {
+                Groovysh shell = session.getAttribute(SHELL_KEY);
+                if (shell != null) {
+                    shell.getRunner().setRunning(false);
+                }
+            }
+        });
+
+        sshd.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("host.key").toPath()));
+        configureAuthentication(sshd);
+        sshd.setShellFactory(channel -> new GroovyShellCommand(sshd, bindings, defaultScripts, isServiceAlive));
+        return sshd;
+    }
+
+    private void configureAuthentication(SshServer sshd) {
+        UserAuthFactory auth;
+        if (this.passwordAuthenticator != null) {
+            sshd.setPasswordAuthenticator(this.passwordAuthenticator);
+            auth = new UserAuthPasswordFactory();
+        } else {
+            auth = new UserAuthNoneFactory();
+        }
+        sshd.setUserAuthFactories(singletonList(auth));
+    }
+
+    public synchronized void destroy() throws IOException {
+        isServiceAlive.set(false);
+        sshd.stop(true);
+    }
+
 }

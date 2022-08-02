@@ -1,0 +1,1 @@
+Premain-Class: me.bazhenov.groovysh.javaagent.AgentStartUp

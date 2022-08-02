@@ -11,7 +11,13 @@
 	</parent>
 
 	<properties>
-		<versions.groovy>3.0.8</versions.groovy>
+		<versions.groovy>3.0.11</versions.groovy>
+		<versions.spring>5.3.20</versions.spring>
+		<versions.sshd>2.7.0</versions.sshd>
+		<versions.slf4j-api>1.7.36</versions.slf4j-api>
+		<versions.logback-classic>1.2.11</versions.logback-classic>
+		<versions.jline>2.14.6</versions.jline>
+		<versions.byte-buddy>1.12.12</versions.byte-buddy>
 	</properties>
 
 	<dependencies>
@@ -24,17 +30,18 @@
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-groovysh</artifactId>
 			<version>${versions.groovy}</version>
+
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>4.3.3.RELEASE</version>
+			<version>${versions.spring}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.sshd</groupId>
 			<artifactId>sshd-core</artifactId>
-			<version>2.7.0</version>
+			<version>${versions.sshd}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>slf4j-api</artifactId>
@@ -45,19 +52,25 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.32</version>
+			<version>${versions.slf4j-api}</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>1.2.6</version>
+			<version>${versions.logback-classic}</version>
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>jline</groupId>
 			<artifactId>jline</artifactId>
-			<version>2.14.6</version>
+			<version>${versions.jline}</version>
 		</dependency>
+		<dependency>
+			<groupId>net.bytebuddy</groupId>
+			<artifactId>byte-buddy</artifactId>
+			<version>${versions.byte-buddy}</version>
+		</dependency>
+
 	</dependencies>
 </project>
