@@ -33,8 +33,7 @@ public class AgentStartUp {
         log.info("start up groovy shell agent");
         log.info("agent args: {}", agentArgs);
 
-        final Map<String, String> argsMap = Arrays.stream(agentArgs.split(",")).map(e -> e.split(":")).collect(Collectors.toMap(e -> e[0], e -> e[1]));
-        host
+//        final Map<String, String> argsMap = Arrays.stream(agentArgs.split(",")).map(e -> e.split(":")).collect(Collectors.toMap(e -> e[0], e -> e[1]));
 
         final ContextHolder<ApplicationContext> contextHolder = new SpringContextHolder();
         contextHolder.loadContext(agentArgs, instrumentation).thenAccept(ctx -> {
