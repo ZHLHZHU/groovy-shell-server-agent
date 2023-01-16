@@ -1,18 +1,16 @@
 package me.bazhenov.groovysh.javaagent;
 
-import com.sun.tools.javac.util.Pair;
+import java.io.IOException;
+import java.lang.instrument.Instrumentation;
+import java.util.HashMap;
+import java.util.Map;
+
 import me.bazhenov.groovysh.GroovyShellService;
 import me.bazhenov.groovysh.javaagent.impl.SpringContextHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 
-import java.io.IOException;
-import java.lang.instrument.Instrumentation;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author zhuzhihao
